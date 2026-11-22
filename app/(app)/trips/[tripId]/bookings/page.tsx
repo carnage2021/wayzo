@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Mail, Ticket } from "lucide-react";
+import { Ticket } from "lucide-react";
 import { BookingCard } from "@/components/bookings/booking-card";
 import { shortDate } from "@/components/bookings/booking-meta";
 import { TicketUploader } from "@/components/bookings/ticket-uploader";
-import { CopyButton } from "@/components/app/copy-button";
+import { ForwardingAddress } from "@/components/trip/forwarding-address";
 import { PageHeader } from "@/components/trip/page-header";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Tag } from "@/components/ui/chip";
@@ -69,16 +69,7 @@ export default async function BookingsPage({ params }: { params: Promise<{ tripI
           <Tag variant="blue">AI reads them for you</Tag>
         </div>
         <TicketUploader tripId={trip.id} isOwner={isOwner} />
-        <div className="bg-mist flex flex-col gap-2 rounded-[18px] p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <Mail className="text-blue size-4" aria-hidden /> Forwarding booking emails
-            <Tag variant="mist">Coming soon</Tag>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <code className="text-ink min-w-0 truncate text-[15px] font-semibold">{address}</code>
-            <CopyButton value={address} label="Copy" />
-          </div>
-        </div>
+        <ForwardingAddress address={address} />
       </Card>
 
       {toReview.length > 0 && (

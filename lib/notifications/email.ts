@@ -13,7 +13,8 @@ function resend(): Resend | null {
   return client;
 }
 
-const FROM = process.env.EMAIL_FROM ?? "Wayzo <hello@wayzo.app>";
+// Until a domain is verified in Resend, only its shared sender works (and it only delivers to your own address).
+const FROM = process.env.EMAIL_FROM || "Wayzo <onboarding@resend.dev>";
 
 export async function sendEmail(msg: { to: string; subject: string; html: string; text: string }) {
   const r = resend();

@@ -151,7 +151,7 @@ function HeroDashboard() {
           <span className="size-2.5 rounded-full bg-[#4CD38A]" />
         </div>
         <div className="text-subtle flex-1 rounded-lg bg-white px-3 py-1.5 text-[11px]">
-          app.wayzo.com/trips/lisbon
+          wayzo-cyan.vercel.app/trips/lisbon
         </div>
       </div>
       <div className="flex">

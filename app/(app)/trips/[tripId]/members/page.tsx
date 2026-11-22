@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 import { Crown, Link2, Mail } from "lucide-react";
-import { CopyButton } from "@/components/app/copy-button";
 import { PageHeader } from "@/components/trip/page-header";
 import { Avatar } from "@/components/ui/avatar";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Tag } from "@/components/ui/chip";
 import { requireUser } from "@/lib/auth";
+import { ForwardingAddress } from "@/components/trip/forwarding-address";
 import { inboundAddress } from "@/lib/env";
 import { getTrip } from "@/lib/trips/queries";
 
@@ -77,12 +77,7 @@ export default async function MembersPage({ params }: { params: Promise<{ tripId
             <CardDescription>
               Members can forward booking confirmations here from their verified emails.
             </CardDescription>
-            <div className="bg-mist flex flex-wrap items-center justify-between gap-3 rounded-[18px] p-3.5">
-              <code className="min-w-0 truncate text-sm font-semibold">
-                {inboundAddress(trip.inbound_code)}
-              </code>
-              <CopyButton value={inboundAddress(trip.inbound_code)} />
-            </div>
+            <ForwardingAddress address={inboundAddress(trip.inbound_code)} />
           </Card>
         </div>
       </div>

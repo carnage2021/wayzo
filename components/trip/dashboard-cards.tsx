@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { BedDouble, Check, Clock, Mail, Sparkles, UserPlus, Users } from "lucide-react";
+import { BedDouble, Check, Clock, Sparkles, UserPlus, Users } from "lucide-react";
 import { TicketUploader } from "@/components/bookings/ticket-uploader";
-import { CopyButton } from "@/components/app/copy-button";
+import { ForwardingAddress } from "@/components/trip/forwarding-address";
 import { Avatar, AvatarStack } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tag } from "@/components/ui/chip";
@@ -281,7 +281,7 @@ export function QuickUploadCard({
   tripId,
   isOwner,
 }: {
-  forwardingAddress: string;
+  forwardingAddress: string | null;
   tripId: string;
   isOwner: boolean;
 }) {
@@ -294,16 +294,7 @@ export function QuickUploadCard({
         </Link>
       </CardHeader>
       <TicketUploader tripId={tripId} isOwner={isOwner} compact />
-      <div className="bg-mist flex flex-col gap-2 rounded-[18px] p-4">
-        <div className="flex items-center gap-2 text-sm font-semibold">
-          <Mail className="text-blue size-4" aria-hidden /> Forward booking emails to
-          <Tag variant="mist">Soon</Tag>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <code className="text-ink min-w-0 truncate text-[15px] font-semibold">{forwardingAddress}</code>
-          <CopyButton value={forwardingAddress} label="Copy" />
-        </div>
-      </div>
+      <ForwardingAddress address={forwardingAddress} />
     </Card>
   );
 }
