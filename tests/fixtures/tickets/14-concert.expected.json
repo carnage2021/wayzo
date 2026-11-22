@@ -1,0 +1,12 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "event",
+      "booking_code": "61-48203/LIS",
+      "start_at": "2027-07-17T20:30",
+      "to_place": "luz"
+    }
+  ]
+}

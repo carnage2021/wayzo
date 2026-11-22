@@ -1,0 +1,9 @@
+ELECTRONIC RESERVATION SLIP (ERS)
+PNR: 2417836590   Train No./Name: 12952 / MUMBAI RAJDHANI
+Class: AC 3 TIER (3A)   Quota: GENERAL (GN)
+From: NEW DELHI (NDLS)   Departure* 16:55 18-Feb-2027
+To: MUMBAI CENTRAL (MMCT)   Arrival* 08:35 19-Feb-2027
+Boarding At: NEW DELHI (NDLS)
+Passenger Details: 1. R KUMAR  Age 34  M  CNF/B4/35/LOWER
+Total Fare: INR 3,215.00
+*Departure and arrival times are local.

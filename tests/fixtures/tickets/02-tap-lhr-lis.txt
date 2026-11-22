@@ -1,0 +1,7 @@
+Booking confirmation - Your trip to Lisbon
+Booking reference: X7K2QP
+Passenger: ALEX RIVERA
+Flight TP 1351 Operated by TAP Air Portugal
+Fri 12 Apr 2027 London Heathrow (LHR) Terminal 2 dep 11:05 -> Lisbon Humberto Delgado (LIS) Terminal 1 arr 13:40
+Seat 14C Economy 1 checked bag
+Total paid: GBP 142.30

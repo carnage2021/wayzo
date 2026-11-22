@@ -6,9 +6,9 @@ import { FlashToast } from "@/components/app/flash-toast";
 import { Avatar } from "@/components/ui/avatar";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { getProfile, requireUser } from "@/lib/auth";
-import { db } from "@/lib/firebase/admin";
-import { toUserEmail } from "@/lib/firebase/convert";
-import type { UserEmailRow } from "@/lib/firebase/types";
+import { asc, eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { userEmails } from "@/lib/db/schema";
 import { FOOD_PREFS } from "@/lib/validation/schemas";
 
 export const metadata: Metadata = { title: "Account" };
@@ -20,12 +20,13 @@ export default async function AccountPage({
 }) {
   const user = await requireUser("/account");
   const profile = await getProfile(user.id);
-  const emailSnap = await db().collection("userEmails").where("user_id", "==", user.id).get();
-  const emails = emailSnap.docs
-    .map((d) => toUserEmail(d))
-    .filter((e): e is UserEmailRow => e !== null)
-    .sort((a, b) => a.created_at.localeCompare(b.created_at))
-    .map(({ id, email, verified_at }) => ({ id, email, verified_at }));
+  const emails = (
+    await db()
+      .select({ id: userEmails.id, email: userEmails.email, verifiedAt: userEmails.verifiedAt })
+      .from(userEmails)
+      .where(eq(userEmails.userId, user.id))
+      .orderBy(asc(userEmails.createdAt))
+  ).map((e) => ({ id: e.id, email: e.email, verified_at: e.verifiedAt?.toISOString() ?? null }));
   const { email_verified } = await searchParams;
 
   return (

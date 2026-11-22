@@ -15,8 +15,10 @@ import { TripCover } from "@/components/trip/trip-cover";
 import { AvatarStack } from "@/components/ui/avatar";
 import { getProfile, requireUser } from "@/lib/auth";
 import { inboundAddress } from "@/lib/env";
-import { db } from "@/lib/firebase/admin";
-import { toActivity, toIso } from "@/lib/firebase/convert";
+import { and, desc, eq, ne } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { toActivity } from "@/lib/db/rows";
+import { activity as activityTable, bookings as bookingsTable } from "@/lib/db/schema";
 import { stayCoverage } from "@/lib/trips/coverage";
 import { countdownLabel, formatTripRange, todayIn, tripDayNumber, tripPhase } from "@/lib/trips/dates";
 import { getTrip } from "@/lib/trips/queries";
@@ -27,30 +29,27 @@ export default async function TripDashboardPage({ params }: { params: Promise<{ 
   const [trip, profile] = await Promise.all([getTrip(tripId), getProfile(user.id)]);
   if (!trip) notFound();
 
-  // getTrip() already confirmed membership; these subcollections belong to that trip.
-  const tripRef = db().collection("trips").doc(trip.id);
-  const [bookingsSnap, prefsSnap, expensesSnap, activitySnap] = await Promise.all([
-    tripRef.collection("bookings").select("type", "status", "start_at", "end_at").get(),
-    tripRef.collection("preferences").doc(user.id).get(),
-    tripRef.collection("expenses").select("amount_trip_minor").get(),
-    tripRef.collection("activity").orderBy("created_at", "desc").limit(6).get(),
+  // getTrip() already confirmed membership; these rows belong to that trip.
+  const [bookings, activityRows] = await Promise.all([
+    db()
+      .select({ type: bookingsTable.type, start_at: bookingsTable.startAt, end_at: bookingsTable.endAt })
+      .from(bookingsTable)
+      .where(and(eq(bookingsTable.tripId, trip.id), ne(bookingsTable.status, "discarded"))),
+    db()
+      .select()
+      .from(activityTable)
+      .where(eq(activityTable.tripId, trip.id))
+      .orderBy(desc(activityTable.createdAt))
+      .limit(6),
   ]);
-
-  const bookings = bookingsSnap.docs
-    .map((d) => ({
-      type: d.get("type") as string,
-      status: d.get("status") as string,
-      start_at: toIso(d.get("start_at")),
-      end_at: toIso(d.get("end_at")),
-    }))
-    .filter((b) => b.status !== "discarded");
   const stays = bookings.filter((b) => b.type === "stay");
   const coverage = stayCoverage(trip.start_date, trip.end_date, stays);
-  const spent = expensesSnap.docs.reduce((sum, d) => sum + (Number(d.get("amount_trip_minor")) || 0), 0);
+  const spent = 0; // expenses arrive in Phase 4
+  const quizDone = false; // preference quiz arrives in Phase 3
 
   const people = new Map(trip.members.map((m) => [m.user_id, m.profile]));
-  const activity: ActivityEntry[] = activitySnap.docs.map((d) => {
-    const a = toActivity(d, trip.id);
+  const activity: ActivityEntry[] = activityRows.map((row) => {
+    const a = toActivity(row);
     return {
       id: a.id,
       verb: a.verb,
@@ -79,7 +78,7 @@ export default async function TripDashboardPage({ params }: { params: Promise<{ 
     {
       label: "Take the quiz",
       hint: "Budget, food, pace, in under a minute",
-      done: prefsSnap.exists,
+      done: quizDone,
       href: `/trips/${trip.id}/plan`,
       soon: true,
     },
@@ -150,7 +149,11 @@ export default async function TripDashboardPage({ params }: { params: Promise<{ 
           ) : phase === "upcoming" ? (
             <ChecklistCard items={checklist} />
           ) : null}
-          <QuickUploadCard forwardingAddress={inboundAddress(trip.inbound_code)} />
+          <QuickUploadCard
+            forwardingAddress={inboundAddress(trip.inbound_code)}
+            tripId={trip.id}
+            isOwner={trip.owner_id === user.id}
+          />
         </div>
         <div className="flex flex-col gap-5">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">

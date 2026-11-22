@@ -1,6 +1,6 @@
 # Wayzo MVP 1 — Data Model
 
-Storage: **Cloud Firestore** (document database). Collection layout, how access is enforced and rules: `firebase/README.md`. The tables below describe the entities and fields; in Firestore, trip-scoped tables become subcollections under `trips/{tripId}`.
+Storage: **Neon Postgres** (app data, `lib/db/schema.ts`) and **MongoDB** (logins, via Better Auth). The tables below describe all entities; the ones built so far, and how access is enforced, are in `docs/BACKEND.md`.
 
 ## Entities
 
@@ -49,7 +49,7 @@ waitlist · places · inbound_emails · ai_usage · push_subscriptions · fx_rat
 | `activity` | Trip activity feed | trip_id, actor_id, verb, object jsonb, created_at |
 | `affiliate_clicks` | Click log | trip_id, user_id, place_id, partner, created_at |
 
-## Access summary (originally written as Postgres RLS; enforced in Firebase by server checks + `firebase/firestore.rules`)
+## Access summary (enforced by membership checks in server code; see `docs/BACKEND.md`)
 
 - Helper `is_trip_member(trip_id)` returns true if `auth.uid()` is in `trip_members` for that trip.
 - Trip-scoped tables: select/insert/update/delete only when `is_trip_member(trip_id)`; delete on `trips`, `trip_members` (others), `invites` only for owner.

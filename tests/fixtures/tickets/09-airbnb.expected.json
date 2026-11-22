@@ -1,0 +1,14 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "stay",
+      "booking_code": "HMQ8T2XZ4A",
+      "start_at": "2027-03-27T16:00",
+      "end_at": "2027-04-02T11:00",
+      "to_place": "kyoto",
+      "currency": "JPY"
+    }
+  ]
+}

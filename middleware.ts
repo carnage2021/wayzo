@@ -1,17 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE } from "@/lib/firebase/session";
-
-const PROTECTED_PREFIXES = ["/trips", "/account", "/onboarding", "/admin"];
+import { getSessionCookie } from "better-auth/cookies";
 
 /**
  * Fast edge guard: no session cookie on an app route -> /login.
- * The cookie is fully verified (signature + revocation) in server code via `requireUser()`,
- * so a stale cookie still ends at /login, which then shows the form.
+ * The session itself is verified in server code via `requireUser()`, so a stale
+ * cookie still ends at /login, which then shows the form.
  */
 export function middleware(request: NextRequest) {
-  const { pathname, search } = request.nextUrl;
-  const isProtected = PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-  if (isProtected && !request.cookies.has(SESSION_COOKIE)) {
+  if (!getSessionCookie(request, { cookiePrefix: "wayzo" })) {
+    const { pathname, search } = request.nextUrl;
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = `?next=${encodeURIComponent(pathname + search)}`;

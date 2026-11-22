@@ -1,0 +1,13 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "restaurant",
+      "provider": "ramiro",
+      "booking_code": "RM-55102",
+      "start_at": "2027-04-15T20:30",
+      "to_place": "ramiro"
+    }
+  ]
+}

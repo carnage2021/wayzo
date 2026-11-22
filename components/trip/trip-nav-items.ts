@@ -69,6 +69,9 @@ export const TRIP_SECTIONS: TripSection[] = [
   { slug: "settings", label: "Settings", Icon: Settings, phase: 1, blurb: "" },
 ];
 
+/** Sections up to this roadmap phase are live; later ones show "Soon". */
+export const LIVE_PHASE = 2;
+
 export const MOBILE_PRIMARY = ["", "bookings", "plan", "expenses"];
 
 export function sectionHref(tripId: string, slug: string) {

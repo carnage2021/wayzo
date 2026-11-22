@@ -1,52 +1,53 @@
 import "server-only";
 import { cache } from "react";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { getUser } from "@/lib/auth";
-import { db } from "@/lib/firebase/admin";
-import { toMember, toProfile, toTrip } from "@/lib/firebase/convert";
-import type { ProfileRow, TripMemberRow, TripRow } from "@/lib/firebase/types";
+import { db } from "@/lib/db";
+import { toMember, toTrip } from "@/lib/db/rows";
+import { profiles, tripMembers, trips } from "@/lib/db/schema";
+import type { ProfileRow, TripMemberRow, TripRow } from "@/lib/db/types";
 
 export type MemberWithProfile = TripMemberRow & {
   profile: Pick<ProfileRow, "id" | "name" | "avatar_url">;
 };
 export type TripWithMembers = TripRow & { members: MemberWithProfile[] };
 
-const TRIP_ID_RE = /^[A-Za-z0-9_-]{8,64}$/;
+export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Attach member docs + profiles. Callers must have checked access already. */
-async function withMembers(trips: TripRow[]): Promise<TripWithMembers[]> {
-  if (trips.length === 0) return [];
-  const firestore = db();
-  const memberSnaps = await Promise.all(
-    trips.map((t) => firestore.collection("trips").doc(t.id).collection("members").get()),
-  );
-  const userIds = [...new Set(memberSnaps.flatMap((s) => s.docs.map((d) => d.id)))];
-  const profileSnaps = userIds.length
-    ? await firestore.getAll(...userIds.map((id) => firestore.collection("users").doc(id)))
-    : [];
-  const byId = new Map(
-    profileSnaps
-      .map((s) => toProfile(s))
-      .filter((p): p is ProfileRow => p !== null)
-      .map((p) => [p.id, { id: p.id, name: p.name, avatar_url: p.avatar_url }]),
-  );
+/** Loads trips with their members and member profiles (two queries). Callers must have checked access. */
+async function withMembers(rows: (typeof trips.$inferSelect)[]): Promise<TripWithMembers[]> {
+  if (rows.length === 0) return [];
+  const members = await db()
+    .select({ member: tripMembers, name: profiles.name, avatarUrl: profiles.avatarUrl })
+    .from(tripMembers)
+    .leftJoin(profiles, eq(profiles.id, tripMembers.userId))
+    .where(
+      inArray(
+        tripMembers.tripId,
+        rows.map((t) => t.id),
+      ),
+    )
+    .orderBy(asc(tripMembers.joinedAt));
 
-  return trips.map((t, i) => ({
-    ...t,
-    members: (memberSnaps[i]?.docs ?? [])
-      .map((d) => toMember(d, t.id))
-      .sort((a, b) => a.joined_at.localeCompare(b.joined_at))
-      .map((m) => ({
-        ...m,
-        profile: byId.get(m.user_id) ?? { id: m.user_id, name: null, avatar_url: null },
+  return rows.map((t) => {
+    const mine = members.filter((m) => m.member.tripId === t.id);
+    return {
+      ...toTrip(
+        t,
+        mine.map((m) => m.member.userId),
+      ),
+      members: mine.map((m) => ({
+        ...toMember(m.member),
+        profile: { id: m.member.userId, name: m.name ?? null, avatar_url: m.avatarUrl ?? null },
       })),
-  }));
+    };
+  });
 }
 
 /** Upcoming first by start date (undated last), then newest. */
 function byStartDate(a: TripRow, b: TripRow): number {
-  if (a.start_date && b.start_date && a.start_date !== b.start_date) {
+  if (a.start_date && b.start_date && a.start_date !== b.start_date)
     return a.start_date.localeCompare(b.start_date);
-  }
   if (a.start_date && !b.start_date) return -1;
   if (!a.start_date && b.start_date) return 1;
   return b.created_at.localeCompare(a.created_at);
@@ -56,9 +57,12 @@ function byStartDate(a: TripRow, b: TripRow): number {
 export async function listMyTrips(): Promise<TripWithMembers[]> {
   const user = await getUser();
   if (!user) return [];
-  const snap = await db().collection("trips").where("member_ids", "array-contains", user.id).get();
-  const trips = snap.docs.map((d) => toTrip(d)).filter((t): t is TripRow => t !== null);
-  return withMembers(trips.sort(byStartDate));
+  const rows = await db()
+    .select({ trip: trips })
+    .from(trips)
+    .innerJoin(tripMembers, and(eq(tripMembers.tripId, trips.id), eq(tripMembers.userId, user.id)));
+  const list = await withMembers(rows.map((r) => r.trip));
+  return list.sort(byStartDate);
 }
 
 /**
@@ -66,11 +70,16 @@ export async function listMyTrips(): Promise<TripWithMembers[]> {
  * (non-members get the same 404 as a missing trip).
  */
 export const getTrip = cache(async (tripId: string): Promise<TripWithMembers | null> => {
-  if (!TRIP_ID_RE.test(tripId)) return null;
+  if (!UUID_RE.test(tripId)) return null;
   const user = await getUser();
   if (!user) return null;
-  const trip = toTrip(await db().collection("trips").doc(tripId).get());
-  if (!trip || !trip.member_ids.includes(user.id)) return null;
-  const [withM] = await withMembers([trip]);
-  return withM ?? null;
+  const rows = await db()
+    .select({ trip: trips })
+    .from(trips)
+    .innerJoin(tripMembers, and(eq(tripMembers.tripId, trips.id), eq(tripMembers.userId, user.id)))
+    .where(eq(trips.id, tripId))
+    .limit(1);
+  if (!rows[0]) return null;
+  const [trip] = await withMembers([rows[0].trip]);
+  return trip ?? null;
 });

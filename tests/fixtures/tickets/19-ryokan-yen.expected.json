@@ -1,0 +1,15 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "stay",
+      "provider": "hoshinoya",
+      "booking_code": "RY202703-55181",
+      "start_at": "2027-03-29T15:00",
+      "end_at": "2027-03-31T12:00",
+      "to_place": "kyoto",
+      "currency": "JPY"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+Rental confirmation - SIXT
+Reservation number: 9781223344
+Pick-up: Faro Airport (FAO), Portugal - Tue 06.07.2027 10:00
+Return: Faro Airport (FAO), Portugal - Sun 11.07.2027 10:00
+Vehicle: VW Golf or similar (CDMR), manual
+Driver: Marco Costa
+Estimated total: 245.80 EUR

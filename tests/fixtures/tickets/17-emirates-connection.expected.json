@@ -1,0 +1,24 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "flight",
+      "provider": "emirates",
+      "booking_code": "K9L2MW",
+      "start_at": "2027-09-05T04:30",
+      "end_at": "2027-09-05T06:05",
+      "from_place": "bom",
+      "to_place": "dxb"
+    },
+    {
+      "type": "flight",
+      "provider": "emirates",
+      "booking_code": "K9L2MW",
+      "start_at": "2027-09-05T07:45",
+      "end_at": "2027-09-05T12:15",
+      "from_place": "dxb",
+      "to_place": "lhr"
+    }
+  ]
+}

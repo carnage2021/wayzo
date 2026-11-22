@@ -31,7 +31,7 @@ Roles: **Owner** (created the trip), **Member** (joined), **Visitor** (not logge
 - As a user, I can delete my account and data.
 
 **AC**
-- [ ] Firebase Auth: email sign-in link + Google. Session persists; sign-out works.
+- [ ] Better Auth: email + password (with password reset) and Google. Session persists; sign-out works.
 - [ ] Animated splash (see `design/splash-screen.html`) shows on PWA launch only (not on every navigation), max 1.5s.
 - [ ] Onboarding (first login): name, home city, default currency, food preference, notification opt-in (push prompt + email default ON). Skippable.
 - [ ] Account page: edit profile, manage extra emails (verification email required), notification defaults, delete account (typed confirmation; deletes user data, removes from trips, transfers ownership to the oldest member or deletes trip if alone).
@@ -51,7 +51,7 @@ Roles: **Owner** (created the trip), **Member** (joined), **Visitor** (not logge
 - [ ] Invite by email (sends invite email) or share link (token, revocable, expires in 14 days). Join requires login. Pending invites listed with resend/cancel.
 - [ ] Roles: Owner can edit everything, remove members, revoke links, delete trip. Members can add/edit bookings, plan items, expenses, photos, and vote.
 - [ ] Trip dashboard: before trip → countdown + checklist ("Upload tickets", "Invite group", "Take quiz", "Pick a stay"); during trip → "Today" card; always → members, budget used, stay coverage (nights covered / total), recent activity, quick-upload dropzone.
-- [ ] All trip data updates live for every member (Firestore realtime listeners).
+- [ ] All trip data updates live for every member (realtime layer, e.g. Pusher/Ably, in a later phase).
 
 ---
 

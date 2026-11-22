@@ -7,7 +7,7 @@ import { UserMenu } from "@/components/app/user-menu";
 import type { AvatarPerson } from "@/components/ui/avatar";
 import { LogoMark } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
-import { TRIP_SECTIONS, sectionHref } from "./trip-nav-items";
+import { LIVE_PHASE, TRIP_SECTIONS, sectionHref } from "./trip-nav-items";
 
 export function useActiveSection(tripId: string) {
   const pathname = usePathname();
@@ -72,7 +72,7 @@ export function TripSidebar({
                 <Icon className="size-[17px]" strokeWidth={2} aria-hidden />
               </span>
               <span className="flex-1">{label}</span>
-              {phase > 1 && (
+              {phase > LIVE_PHASE && (
                 <span className="text-muted-dark rounded-full bg-white/[.06] px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase">
                   Soon
                 </span>

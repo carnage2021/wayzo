@@ -1,0 +1,14 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "train",
+      "booking_code": "2417836590",
+      "start_at": "2027-02-18T16:55",
+      "end_at": "2027-02-19T08:35",
+      "from_place": "delhi",
+      "to_place": "mumbai"
+    }
+  ]
+}

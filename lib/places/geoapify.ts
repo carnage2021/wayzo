@@ -145,3 +145,55 @@ export async function getPlaceBasics(placeId: string): Promise<PlaceBasics | nul
   remember(basics);
   return basics;
 }
+
+export type GeocodedPlace = {
+  place_id: string;
+  name: string;
+  city: string | null;
+  lat: number;
+  lng: number;
+  timezone: string | null;
+};
+
+/**
+ * Best match for a free-text place from a ticket ("Hotel Lisboa Plaza, Lisbon", "Lisbon (LIS)").
+ * Biased towards `near` (the trip destination) when known. Returns null when nothing matches.
+ */
+export async function geocodePlace(
+  text: string,
+  near?: { lat: number; lng: number } | null,
+): Promise<GeocodedPlace | null> {
+  const q = text.trim();
+  if (q.length < 3) return null;
+  const url = new URL(`${BASE}/v1/geocode/search`);
+  url.searchParams.set("text", q.slice(0, 200));
+  url.searchParams.set("limit", "1");
+  url.searchParams.set("lang", "en");
+  url.searchParams.set("format", "json");
+  if (near) url.searchParams.set("bias", `proximity:${near.lng},${near.lat}`);
+  url.searchParams.set("apiKey", key());
+  try {
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(6000),
+      next: { revalidate: 60 * 60 * 24 * 7 },
+    });
+    if (!res.ok) return null;
+    const r = (
+      (await res.json()) as {
+        results?: (AutocompleteResult & { timezone?: { name?: string }; rank?: { confidence?: number } })[];
+      }
+    ).results?.[0];
+    if (!r?.place_id || typeof r.lat !== "number" || typeof r.lon !== "number") return null;
+    if ((r.rank?.confidence ?? 1) < 0.3) return null;
+    return {
+      place_id: r.place_id,
+      name: r.name ?? r.address_line1 ?? r.formatted ?? q,
+      city: r.city ?? null,
+      lat: r.lat,
+      lng: r.lon,
+      timezone: r.timezone?.name ?? null,
+    };
+  } catch {
+    return null;
+  }
+}

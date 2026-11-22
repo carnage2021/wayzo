@@ -1,0 +1,13 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "car_rental",
+      "provider": "sixt",
+      "booking_code": "9781223344",
+      "start_at": "2027-07-06T10:00",
+      "end_at": "2027-07-11T10:00"
+    }
+  ]
+}

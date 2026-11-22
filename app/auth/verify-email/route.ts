@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { FieldValue } from "firebase-admin/firestore";
-import { adminDb } from "@/lib/firebase/admin";
+import { and, eq, isNull } from "drizzle-orm";
+import { db, isDbConfigured } from "@/lib/db";
+import { userEmails } from "@/lib/db/schema";
 import { verifySignedToken } from "@/lib/signed-token";
+import { UUID_RE } from "@/lib/trips/queries";
 
 type Payload = { uid: string; rid: string; email: string };
 
@@ -9,26 +11,25 @@ type Payload = { uid: string; rid: string; email: string };
 export async function GET(request: NextRequest) {
   const url = request.nextUrl;
   const secret = process.env.APP_SECRET;
-  const db = adminDb();
   const payload = secret ? verifySignedToken<Payload>(url.searchParams.get("token") ?? "", secret) : null;
 
-  if (!payload || !db || !/^[a-f0-9]{64}$/.test(payload.rid)) {
+  if (!payload || !isDbConfigured() || !UUID_RE.test(payload.rid)) {
     return NextResponse.redirect(new URL("/account?email_verified=0", url));
   }
 
-  const ref = db.collection("userEmails").doc(payload.rid);
-  const verified = await db
-    .runTransaction(async (tx) => {
-      const snap = await tx.get(ref);
-      const matches =
-        snap.exists &&
-        snap.get("user_id") === payload.uid &&
-        snap.get("email") === payload.email &&
-        !snap.get("verified_at");
-      if (matches) tx.update(ref, { verified_at: FieldValue.serverTimestamp() });
-      return matches;
-    })
-    .catch(() => false);
+  const updated = await db()
+    .update(userEmails)
+    .set({ verifiedAt: new Date() })
+    .where(
+      and(
+        eq(userEmails.id, payload.rid),
+        eq(userEmails.userId, payload.uid),
+        eq(userEmails.email, payload.email),
+        isNull(userEmails.verifiedAt),
+      ),
+    )
+    .returning({ id: userEmails.id })
+    .catch(() => []);
 
-  return NextResponse.redirect(new URL(`/account?email_verified=${verified ? "1" : "0"}`, url));
+  return NextResponse.redirect(new URL(`/account?email_verified=${updated.length ? "1" : "0"}`, url));
 }

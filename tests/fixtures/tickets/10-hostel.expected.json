@@ -1,0 +1,14 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "stay",
+      "provider": "generator",
+      "booking_code": "18872633-554219",
+      "start_at": "2027-09-05",
+      "end_at": "2027-09-08",
+      "to_place": "amsterdam"
+    }
+  ]
+}

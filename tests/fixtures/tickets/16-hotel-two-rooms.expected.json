@@ -1,0 +1,14 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "stay",
+      "provider": "fullerton",
+      "booking_code": "88231945",
+      "start_at": "2027-10-22",
+      "end_at": "2027-10-25",
+      "to_place": "singapore"
+    }
+  ]
+}

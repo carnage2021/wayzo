@@ -9,11 +9,11 @@ Work phase by phase. Each phase ends with a demo. Tick boxes as tasks finish. Fe
 - [x] Init Next.js 15 + TypeScript strict + Tailwind + shadcn/ui; ESLint/Prettier; pnpm
 - [x] Design tokens from `DESIGN_SYSTEM.md` as CSS variables + Tailwind theme; fonts via `next/font`
 - [x] Base UI kit: Button (lime/ink/ghost), Input, Chip, Card, Avatar stack, Toast, Dialog, Sheet, Tabs, Skeleton, EmptyState
-- [ ] Firebase project (Auth, Firestore, Storage); deploy `firebase/*.rules` — _done: project `wayzo-2482f`, email-link + Google sign-in, Firestore created, Firestore rules deployed, verified end-to-end (sign in → create trip → dashboard). Left: enable Storage (needs Blaze plan) and deploy `storage.rules` before Phase 2 uploads_
-- [x] Firebase layer (`lib/firebase/admin|client|convert|types`), session-cookie auth, middleware guard
+- [x] Backend: Neon Postgres (Drizzle migrations), Better Auth on MongoDB (email + password; Google when keys are added), UploadThing for files. _Moved off Firebase; verified end-to-end (sign up, trip, upload, bookings, delete account)_
+- [x] Data layer (`lib/db`), auth (`lib/auth`), session-cookie middleware guard
 - [x] **F1** Port `design/landing-page.html` to `app/(marketing)/page.tsx` as components (keep all animations; scroll logic in a small client hook)
 - [x] **F1** `/api/waitlist` + confirmation email (Resend); SEO metadata, OG image, robots, sitemap; Privacy/Terms
-- [x] **F2** Auth: magic link + Google; `/login`, `/auth/callback`; onboarding; account page
+- [x] **F2** Auth: email + password (+ Google when configured), forgot/reset password; `/login`; onboarding; account page
 - [x] PWA: manifest, icons from logo mark, service worker skeleton, splash per `design/splash-screen.html`
 - [x] **F3** Create trip, My trips, empty trip dashboard shell with sidebar/bottom nav
 - [ ] Sentry + PostHog wired; Vercel preview deploys — _SDKs wired behind env vars; Vercel project needs your account_
@@ -21,15 +21,15 @@ Work phase by phase. Each phase ends with a demo. Tick boxes as tasks finish. Fe
 
 ## Phase 2 — Ticket intake (Weeks 3–4)
 
-- [ ] `lib/ai/` provider wrapper + usage tracking (`ai_usage`) + daily cap
-- [ ] `parseTicket` per `AI_SPEC.md` with Zod; PDF text extraction; image path for scans
-- [ ] Ticket fixtures set (≥ 20 to start) + `pnpm eval:tickets`
-- [ ] **F4** Upload UI: dropzone, multi-file progress, mobile camera
-- [ ] **F4** `processTicket` pipeline: parse → geocode (Places) → match day → dedupe → save → status
-- [ ] **F4** Review screen (source preview + editable fields), undo toast, extend-trip prompt
-- [ ] **F4** Inbound email: per-trip address, webhook, sender check, auto-reply, raw log
-- [ ] **F4** Bookings timeline page
-- [ ] Trip auto-fill (dates/destination from first tickets)
+- [x] `lib/ai/` provider wrapper + usage tracking (`ai_usage`) + daily cap — _OpenAI-compatible; OpenRouter free models with fallback chain_
+- [x] `parseTicket` per `AI_SPEC.md` with Zod; PDF text extraction; image path for scans — _scanned PDFs via OpenRouter's free parser; second opinion when a return leg looks missing_
+- [x] Ticket fixtures set (≥ 20 to start) + `pnpm eval:tickets` — _20 fixtures (1 anonymised real itinerary). First full run: 15/20 bookings, 85% of fields; all five failing cases pass after prompt + safeguard fixes (full re-run still to do)_
+- [x] **F4** Upload UI: dropzone, multi-file progress, mobile camera — _HEIC converted in the browser; UploadThing; verified end-to-end_
+- [x] **F4** `processTicket` pipeline: parse → geocode (Places) → match day → dedupe → save → status — _reminders/stay-gap hooks come with F10/F6_
+- [x] **F4** Review screen (source preview + editable fields), undo toast, extend-trip prompt
+- [ ] **F4** Inbound email: per-trip address, webhook, sender check, auto-reply, raw log — _needs a domain + Resend Inbound_
+- [x] **F4** Bookings timeline page
+- [x] Trip auto-fill (dates/destination from first tickets)
 - **Demo:** upload or forward 5 different real tickets → correct timeline.
 
 ## Phase 3 — AI planning (Weeks 5–6)
@@ -46,7 +46,7 @@ Work phase by phase. Each phase ends with a demo. Tick boxes as tasks finish. Fe
 ## Phase 4 — Group & money (Weeks 7–8)
 
 - [ ] **F3** Invites (email + link), join flow, roles, remove member, pending list
-- [ ] Realtime (Firestore listeners) for bookings, plan, expenses, votes; "edited by" hints; activity feed
+- [ ] Realtime (e.g. Pusher/Ably free tier) for bookings, plan, expenses, votes; "edited by" hints; activity feed
 - [ ] **F6** Stay voting
 - [ ] **F9** Add/edit expense, splits (equal/exact/shares), receipts, FX conversion (`/api/cron/fx`)
 - [ ] **F9** Budget card, per-person/category breakdown, simplified balances (`lib/money/balances.ts`, unit tested), mark settled
@@ -67,7 +67,7 @@ Work phase by phase. Each phase ends with a demo. Tick boxes as tasks finish. Fe
 
 - [ ] **F12** Admin panel: waitlist export/invite batches, users, parsing failures, costs, affiliate clicks
 - [ ] Playwright flows: sign-up → trip → upload → quiz → plan → invite → expense → story
-- [ ] Access tests (non-member cannot read/write any trip data; Firestore rules emulator tests)
+- [ ] Access tests (non-member cannot read/write any trip data)
 - [ ] Performance pass (Lighthouse, bundle size, image optimisation); accessibility audit (axe)
 - [ ] Error/empty/loading states review on all screens
 - [ ] Privacy: data export & delete; policy text reviewed `[LEGAL REVIEW]`

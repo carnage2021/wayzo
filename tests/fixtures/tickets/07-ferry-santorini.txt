@@ -1,0 +1,8 @@
+Blue Star Ferries - E-ticket
+Reservation code: BSF-88213
+Route: Piraeus -> Santorini (Thira)
+Departure: 07:25, 14/08/2027
+Arrival: 15:20, 14/08/2027
+Vessel: Blue Star Delos   Class: Economy (deck)
+Passengers: 2 adults (N. Patel, K. Patel)
+Total amount: 167.00 EUR

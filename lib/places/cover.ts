@@ -1,5 +1,5 @@
 import "server-only";
-import type { CoverCredit } from "@/lib/firebase/types";
+import type { CoverCredit } from "@/lib/db/types";
 
 /**
  * Trip cover photos from Unsplash (free; demo 50 req/h, 1,000 req/h after approval).

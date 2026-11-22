@@ -1,0 +1,7 @@
+Emirates e-ticket receipt
+Booking reference (PNR): K9L2MW
+Passenger: MR NIKHIL PATEL
+EK 501  Mumbai (BOM) 04:30 -> Dubai (DXB) 06:05   Sun 05 Sep 2027  Economy  Seat 33A
+EK 001  Dubai (DXB) 07:45 -> London Heathrow (LHR) 12:15   Sun 05 Sep 2027  Economy  Seat 41K
+Baggage: 2 pieces
+Total fare INR 58,430

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/trip/page-header";
-import { TRIP_SECTIONS } from "@/components/trip/trip-nav-items";
+import { LIVE_PHASE, TRIP_SECTIONS } from "@/components/trip/trip-nav-items";
 import { buttonVariants } from "@/components/ui/button";
 import { Tag } from "@/components/ui/chip";
 
@@ -12,7 +12,7 @@ export default async function TripSectionPage({
   params: Promise<{ tripId: string; section: string }>;
 }) {
   const { tripId, section } = await params;
-  const meta = TRIP_SECTIONS.find((s) => s.slug === section && s.phase > 1);
+  const meta = TRIP_SECTIONS.find((s) => s.slug === section && s.phase > LIVE_PHASE);
   if (!meta) notFound();
   const { Icon } = meta;
 

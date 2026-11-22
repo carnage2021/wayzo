@@ -1,0 +1,16 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "train",
+      "provider": "eurostar",
+      "booking_code": "QWERTY",
+      "start_at": "2027-07-10T08:01",
+      "end_at": "2027-07-10T11:20",
+      "from_place": "london",
+      "to_place": "paris",
+      "currency": "GBP"
+    }
+  ]
+}

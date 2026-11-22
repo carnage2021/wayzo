@@ -1,0 +1,18 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "flight",
+      "provider": "tap",
+      "booking_code": "X7K2QP",
+      "start_at": "2027-04-12T11:05",
+      "end_at": "2027-04-12T13:40",
+      "from_place": "lhr",
+      "to_place": "lis",
+      "seat_or_room": "14C",
+      "price": 142.3,
+      "currency": "GBP"
+    }
+  ]
+}

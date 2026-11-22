@@ -1,0 +1,12 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "activity",
+      "booking_code": "GYGX3K92PL",
+      "start_at": "2027-04-13T17:00",
+      "to_place": "lisbon"
+    }
+  ]
+}

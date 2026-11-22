@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
-import { Mail } from "lucide-react";
-import { authErrorMessage, sendEmailLink, signInWithGoogle } from "@/lib/firebase/client";
+import Link from "next/link";
+import { Eye, EyeOff, Lock, Mail, UserRound } from "lucide-react";
 import { ArrowIcon, Button } from "@/components/ui/button";
 import { FieldError, Input, Label } from "@/components/ui/input";
-import { afterSignIn } from "@/lib/utils";
+import { authClient, authErrorMessage } from "@/lib/auth/client";
+import { cn } from "@/lib/utils";
 import { normalizeEmail } from "@/lib/validation/email";
 
 function GoogleIcon() {
@@ -31,94 +32,137 @@ function GoogleIcon() {
   );
 }
 
-export function LoginForm({ next, initialError }: { next: string; initialError: string | null }) {
+type Mode = "signin" | "signup";
+
+export function LoginForm({
+  next,
+  initialError,
+  googleEnabled,
+  initialMode = "signin",
+}: {
+  next: string;
+  initialError: string | null;
+  googleEnabled: boolean;
+  initialMode?: Mode;
+}) {
+  const [mode, setMode] = useState<Mode>(initialMode);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
   const [error, setError] = useState<string | null>(initialError);
+  const [fields, setFields] = useState<Record<string, string>>({});
   const [shake, setShake] = useState(0);
-  const [sentTo, setSentTo] = useState<string | null>(null);
-  const [pendingEmail, startEmail] = useTransition();
+  const [pending, start] = useTransition();
   const [pendingGoogle, startGoogle] = useTransition();
+  const continueUrl = `/auth/continue?next=${encodeURIComponent(next)}`;
+
+  function fail(message: string, f: Record<string, string> = {}) {
+    setError(message);
+    setFields(f);
+    setShake((s) => s + 1);
+  }
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     const valid = normalizeEmail(email);
-    if (!valid) {
-      setError("Please enter a valid email address.");
-      setShake((s) => s + 1);
-      return;
-    }
+    const f: Record<string, string> = {};
+    if (mode === "signup" && !name.trim()) f.name = "Tell us your name.";
+    if (!valid) f.email = "Please enter a valid email address.";
+    if (password.length < 8) f.password = "Use at least 8 characters.";
+    if (Object.keys(f).length) return fail("Check the highlighted fields.", f);
     setError(null);
-    startEmail(async () => {
-      try {
-        await sendEmailLink(valid, next);
-        setSentTo(valid);
-      } catch (err) {
-        setError(authErrorMessage(err));
-        setShake((s) => s + 1);
-      }
+    setFields({});
+    start(async () => {
+      const res =
+        mode === "signup"
+          ? await authClient.signUp.email({ name: name.trim(), email: valid!, password })
+          : await authClient.signIn.email({ email: valid!, password });
+      if (res.error) return fail(authErrorMessage(res.error.code));
+      window.location.assign(continueUrl);
     });
   }
 
   function onGoogle() {
     setError(null);
     startGoogle(async () => {
-      try {
-        const { onboarded } = await signInWithGoogle();
-        window.location.assign(afterSignIn(onboarded, next));
-      } catch (err) {
-        setError(authErrorMessage(err));
-      }
+      const res = await authClient.signIn.social({ provider: "google", callbackURL: continueUrl });
+      if (res.error) setError(authErrorMessage(res.error.code, "Google sign-in is unavailable right now."));
     });
-  }
-
-  if (sentTo) {
-    return (
-      <div role="status" className="animate-fadeup flex flex-col items-center gap-4 text-center">
-        <span className="animate-popin bg-lime inline-flex size-[84px] items-center justify-center rounded-full">
-          <Mail className="text-ink size-9" strokeWidth={2.2} aria-hidden />
-        </span>
-        <h1 className="font-display mt-1.5 text-[32px] leading-tight font-extrabold">Check your inbox</h1>
-        <p className="text-muted max-w-[340px] text-base leading-[1.6]">
-          We sent a sign-in link to <b className="text-ink">{sentTo}</b>. Open it on this device to continue.
-        </p>
-        <Button variant="soft" className="mt-2" onClick={() => setSentTo(null)}>
-          Use a different email
-        </Button>
-      </div>
-    );
   }
 
   return (
     <div className="flex flex-col gap-7">
       <div>
-        <div className="eyebrow text-blue">Welcome</div>
+        <div className="eyebrow text-blue">{mode === "signin" ? "Welcome back" : "Get started"}</div>
         <h1 className="font-display mt-3 text-[clamp(34px,4vw,44px)] leading-[1.05] font-extrabold">
-          Sign in to Wayzo
+          {mode === "signin" ? "Sign in to Wayzo" : "Create your account"}
         </h1>
-        <p className="text-muted mt-3 text-base leading-[1.6]">
-          No password needed. We&apos;ll email you a magic link.
-        </p>
       </div>
 
-      <Button
-        variant="outline"
-        size="lg"
-        className="w-full"
-        onClick={onGoogle}
-        loading={pendingGoogle}
-        disabled={pendingEmail}
+      <div
+        className="bg-mist grid grid-cols-2 rounded-full p-1"
+        role="tablist"
+        aria-label="Sign in or create account"
       >
-        {!pendingGoogle && <GoogleIcon />}
-        Continue with Google
-      </Button>
-
-      <div className="text-subtle flex items-center gap-4 text-[13px] font-semibold" role="separator">
-        <span className="bg-line h-px flex-1" />
-        or with email
-        <span className="bg-line h-px flex-1" />
+        {(["signin", "signup"] as const).map((m) => (
+          <button
+            key={m}
+            type="button"
+            role="tab"
+            aria-selected={mode === m}
+            onClick={() => {
+              setMode(m);
+              setError(null);
+              setFields({});
+            }}
+            className={cn(
+              "rounded-full py-2.5 text-[15px] font-semibold transition-colors",
+              mode === m ? "bg-ink text-white" : "text-muted hover:text-ink",
+            )}
+          >
+            {m === "signin" ? "Sign in" : "Create account"}
+          </button>
+        ))}
       </div>
+
+      {googleEnabled && (
+        <>
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full"
+            onClick={onGoogle}
+            loading={pendingGoogle}
+            disabled={pending}
+          >
+            {!pendingGoogle && <GoogleIcon />}
+            Continue with Google
+          </Button>
+          <div className="text-subtle flex items-center gap-4 text-[13px] font-semibold" role="separator">
+            <span className="bg-line h-px flex-1" />
+            or with email
+            <span className="bg-line h-px flex-1" />
+          </div>
+        </>
+      )}
 
       <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
+        {mode === "signup" && (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="login-name">Your name</Label>
+            <Input
+              id="login-name"
+              autoComplete="name"
+              placeholder="Alex Rivera"
+              icon={<UserRound />}
+              value={name}
+              invalid={Boolean(fields.name)}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <FieldError>{fields.name}</FieldError>
+          </div>
+        )}
         <div className="flex flex-col gap-2">
           <Label htmlFor="login-email">Email address</Label>
           <Input
@@ -129,18 +173,54 @@ export function LoginForm({ next, initialError }: { next: string; initialError: 
             placeholder="you@email.com"
             icon={<Mail />}
             value={email}
-            invalid={Boolean(error)}
+            invalid={Boolean(fields.email)}
             shakeSignal={shake}
-            aria-describedby={error ? "login-err" : undefined}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setError(null);
-            }}
+            onChange={(e) => setEmail(e.target.value)}
           />
-          <FieldError id="login-err">{error}</FieldError>
+          <FieldError>{fields.email}</FieldError>
         </div>
-        <Button type="submit" size="lg" className="w-full" loading={pendingEmail} disabled={pendingGoogle}>
-          Email me a sign-in link {!pendingEmail && <ArrowIcon />}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="login-password">Password</Label>
+            {mode === "signin" && (
+              <Link href="/forgot-password" className="text-blue text-sm font-semibold hover:underline">
+                Forgot password?
+              </Link>
+            )}
+          </div>
+          <Input
+            id="login-password"
+            type={show ? "text" : "password"}
+            autoComplete={mode === "signin" ? "current-password" : "new-password"}
+            placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
+            icon={<Lock />}
+            value={password}
+            invalid={Boolean(fields.password)}
+            onChange={(e) => setPassword(e.target.value)}
+            trailing={
+              <button
+                type="button"
+                onClick={() => setShow((s) => !s)}
+                className="text-subtle hover:text-ink inline-flex size-9 items-center justify-center rounded-full"
+                aria-label={show ? "Hide password" : "Show password"}
+              >
+                {show ? (
+                  <EyeOff className="size-[18px]" aria-hidden />
+                ) : (
+                  <Eye className="size-[18px]" aria-hidden />
+                )}
+              </button>
+            }
+          />
+          <FieldError>{fields.password}</FieldError>
+        </div>
+        {error && (
+          <p role="alert" className="text-error -mt-1 text-sm font-semibold">
+            {error}
+          </p>
+        )}
+        <Button type="submit" size="lg" className="w-full" loading={pending} disabled={pendingGoogle}>
+          {mode === "signin" ? "Sign in" : "Create account"} {!pending && <ArrowIcon />}
         </Button>
       </form>
 

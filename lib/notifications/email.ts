@@ -85,3 +85,16 @@ export function verifyEmailEmail(to: string, link: string) {
     }),
   };
 }
+
+export function resetPasswordEmail(to: string, link: string) {
+  return {
+    to,
+    subject: "Reset your Wayzo password",
+    text: `Someone asked to reset the password for ${to}.\n\nChoose a new password here:\n${link}\n\nThis link expires in 1 hour. If it wasn't you, ignore this email.`,
+    html: layout({
+      heading: "Reset your password",
+      body: `<p style="margin:0">Someone asked to reset the password for <b style="color:#0B1020">${escapeHtml(to)}</b>.</p><p style="margin:14px 0 0;font-size:14px">This link expires in 1 hour. If it wasn't you, you can ignore this email.</p>`,
+      cta: { label: "Choose a new password", href: link },
+    }),
+  };
+}

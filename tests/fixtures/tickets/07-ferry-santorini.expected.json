@@ -1,0 +1,14 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "ferry",
+      "booking_code": "BSF-88213",
+      "start_at": "2027-08-14T07:25",
+      "end_at": "2027-08-14T15:20",
+      "from_place": "piraeus",
+      "to_place": "santorini"
+    }
+  ]
+}

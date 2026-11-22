@@ -1,0 +1,9 @@
+Your booking is confirmed!
+Hotel Lisboa Plaza
+Travessa do Salitre 7, Avenida da Liberdade, 1269-066 Lisbon, Portugal
+Confirmation number: 4421.873.906   PIN: 2231
+Check-in: Monday, 12 April 2027 (from 15:00)
+Check-out: Friday, 16 April 2027 (until 12:00)
+Your reservation: 4 nights, 1 room
+Guest name: Alex Rivera
+Price: EUR 712.40 (includes taxes and charges)

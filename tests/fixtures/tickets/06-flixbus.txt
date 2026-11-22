@@ -1,0 +1,7 @@
+FlixBus booking confirmation
+Booking number: 3021 4498 7715
+Berlin central bus station (ZOB)  14:30  Thu, 20.05.2027
+Prague (Florenc)  19:15  Thu, 20.05.2027
+Direct connection, 4h 45min
+Passenger: Ana Costa, seat 23
+Price: 24,99 EUR

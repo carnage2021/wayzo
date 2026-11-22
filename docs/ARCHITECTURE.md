@@ -11,8 +11,8 @@
  │  (dashboard, auth, planning)       (/api/inbound-email, /api/uploads)│
  └─────┬──────────────┬──────────────────┬──────────────────┬──────────┘
        ▼              ▼                  ▼                  ▼
-   AI model     Places + weather      Firebase         Email + web push
- (read, plan,   (stays, food,      (Auth, Firestore,  (briefs, reminders,
+   AI model     Places + weather      Neon + MongoDB   Email + web push
+ (read, plan,   (stays, food,      (data, logins;     (briefs, reminders,
   assist)        hours, travel)     Storage; Vercel    invites)
                                     Cron)
 ```
@@ -22,10 +22,10 @@ The browser never calls the AI, Places (server key) or email APIs directly.
 ## Key flows
 
 ### Ticket upload
-1. Client uploads file to Cloud Storage (`trips/{trip_id}/tickets/{uuid}`) with a signed upload URL from `POST /api/uploads/sign`.
-2. Client calls server action `processTicket({ tripId, path })`.
+1. Client uploads the file to UploadThing (route `ticket`; middleware checks trip membership, the completion callback records it in `uploads`).
+2. Client calls `POST /api/trips/:tripId/tickets/process { key }`.
 3. Server: extract PDF text (`pdf-parse`) → if empty/scanned, render page images → AI `parseTicket` (vision) → Zod validate → match trip/day → dedupe → insert `bookings` → schedule `notifications` → recompute stay gaps.
-4. Firestore listeners push the new booking to all members.
+4. Members see the new booking on their next load (live updates come with the realtime phase).
 
 ### Inbound email
 1. `POST /api/inbound-email` (verify signature with `INBOUND_WEBHOOK_SECRET`).
@@ -70,8 +70,8 @@ Everything else is server actions in `app/(app)/trips/[tripId]/actions.ts` (grou
 
 ## Security
 
-- Every trip read/write checks the user is in `trips/{id}.member_ids` (server) and `firebase/firestore.rules` restricts browser reads to members, with no browser writes.
+- Every trip read/write checks the user is in `trip_members` (server code); browsers have no direct database or storage access. See `docs/BACKEND.md`.
 - Storage buckets `tickets`, `photos` private; signed URLs (1h).
-- Firebase Admin SDK runs only in server code (route handlers, server actions, cron).
+- Database and storage credentials are used only in server code (route handlers, server actions, cron).
 - Rate limits: waitlist, uploads, AI actions (per-user daily cap in `ai_usage`).
 - Input validation with Zod everywhere; AI output validated before use.

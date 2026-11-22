@@ -1,0 +1,11 @@
+easyJet
+Your booking EJY4M2N is confirmed
+Hi Maya, thanks for booking with easyJet.
+OUTBOUND  Wed 02 Jun 2027
+EZY8217  London Gatwick (LGW) 06:45  ->  Barcelona El Prat (BCN) 09:55
+RETURN  Mon 07 Jun 2027
+EZY8218  Barcelona El Prat (BCN) 10:40  ->  London Gatwick (LGW) 12:05
+Passengers: Maya Lopez, Sam Okafor
+Seats: 12A, 12B (outbound) 21C, 21D (return)
+Total price GBP 318.96
+Manage your booking online. Bag drop opens 2 hours before departure.

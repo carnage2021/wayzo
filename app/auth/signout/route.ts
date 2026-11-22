@@ -1,12 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE } from "@/lib/firebase/session";
+import { getAuth } from "@/lib/auth/server";
 
-/**
- * POST-only so a link prefetch or crawler can't sign people out.
- * Clears this browser's session; other devices stay signed in.
- */
+/** POST-only so a link prefetch or crawler can't sign people out. Ends this browser's session. */
 export async function POST(request: NextRequest) {
-  const res = NextResponse.redirect(new URL("/login", request.url), { status: 303 });
-  res.cookies.delete(SESSION_COOKIE);
-  return res;
+  const out = NextResponse.redirect(new URL("/login", request.url), { status: 303 });
+  const auth = getAuth();
+  if (auth) {
+    try {
+      const res = await auth.api.signOut({ headers: request.headers, asResponse: true });
+      for (const cookie of res.headers.getSetCookie()) out.headers.append("set-cookie", cookie);
+    } catch {
+      /* already signed out */
+    }
+  }
+  return out;
 }

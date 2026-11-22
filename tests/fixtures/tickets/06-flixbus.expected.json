@@ -1,0 +1,15 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "bus",
+      "provider": "flixbus",
+      "booking_code": "302144987715",
+      "start_at": "2027-05-20T14:30",
+      "end_at": "2027-05-20T19:15",
+      "from_place": "berlin",
+      "to_place": "prague"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- Unsplash requires hotlinking their URL as returned */
 import { cn } from "@/lib/utils";
 import { ROUTE_PATH } from "@/components/ui/logo";
-import type { CoverCredit } from "@/lib/firebase/types";
+import type { CoverCredit } from "@/lib/db/types";
 
 const UNSPLASH_HOME = "https://unsplash.com/?utm_source=wayzo&utm_medium=referral";
 

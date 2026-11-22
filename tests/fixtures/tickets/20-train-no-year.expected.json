@@ -1,0 +1,22 @@
+{
+  "is_travel_document": true,
+  "trip": {
+    "name": "Italy summer",
+    "start_date": "2027-06-12",
+    "end_date": "2027-06-20",
+    "destinations": [
+      "Florence",
+      "Rome"
+    ]
+  },
+  "bookings": [
+    {
+      "type": "train",
+      "booking_code": "XRT9KL",
+      "start_at": "2027-06-14T09:15",
+      "end_at": "2027-06-14T10:51",
+      "from_place": "firenze",
+      "to_place": "roma"
+    }
+  ]
+}

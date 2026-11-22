@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { BedDouble, Check, Clock, Mail, Sparkles, Ticket, Upload, UserPlus, Users } from "lucide-react";
+import { BedDouble, Check, Clock, Mail, Sparkles, UserPlus, Users } from "lucide-react";
+import { TicketUploader } from "@/components/bookings/ticket-uploader";
 import { CopyButton } from "@/components/app/copy-button";
 import { Avatar, AvatarStack } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -275,29 +276,28 @@ export function ActivityCard({ entries }: { entries: ActivityEntry[] }) {
 
 // ---------- Quick upload ----------
 
-export function QuickUploadCard({ forwardingAddress }: { forwardingAddress: string }) {
+export function QuickUploadCard({
+  forwardingAddress,
+  tripId,
+  isOwner,
+}: {
+  forwardingAddress: string;
+  tripId: string;
+  isOwner: boolean;
+}) {
   return (
     <Card className="gap-5">
       <CardHeader>
         <CardTitle>Add tickets</CardTitle>
-        <Tag variant="blue">AI reading arrives next</Tag>
+        <Link href={`/trips/${tripId}/bookings`} className="text-blue text-sm font-semibold hover:underline">
+          All bookings
+        </Link>
       </CardHeader>
-      <div
-        className="bg-canvas flex flex-col items-center gap-3 rounded-[22px] border-[1.5px] border-dashed border-[#B9C2D3] px-5 py-8 text-center"
-        aria-disabled="true"
-      >
-        <span className="bg-lime text-ink inline-flex size-12 items-center justify-center rounded-[14px]">
-          <Upload className="size-[22px]" aria-hidden />
-        </span>
-        <div className="font-semibold">Drop tickets here</div>
-        <div className="text-subtle text-[13px]">PDF, screenshot or photo · up to 15 MB each</div>
-        <div className="text-subtle mt-1 inline-flex items-center gap-2 text-[13px] font-semibold">
-          <Ticket className="size-4" aria-hidden /> Upload opens with ticket reading in the next update
-        </div>
-      </div>
+      <TicketUploader tripId={tripId} isOwner={isOwner} compact />
       <div className="bg-mist flex flex-col gap-2 rounded-[18px] p-4">
         <div className="flex items-center gap-2 text-sm font-semibold">
-          <Mail className="text-blue size-4" aria-hidden /> Or forward booking emails to
+          <Mail className="text-blue size-4" aria-hidden /> Forward booking emails to
+          <Tag variant="mist">Soon</Tag>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <code className="text-ink min-w-0 truncate text-[15px] font-semibold">{forwardingAddress}</code>

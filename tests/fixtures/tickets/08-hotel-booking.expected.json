@@ -1,0 +1,14 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "stay",
+      "provider": "lisboa plaza",
+      "booking_code": "4421.873.906",
+      "start_at": "2027-04-12",
+      "end_at": "2027-04-16",
+      "to_place": "lisbon"
+    }
+  ]
+}

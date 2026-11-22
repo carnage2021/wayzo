@@ -1,0 +1,8 @@
+Eurostar - Your booking is confirmed
+Booking reference: QWERTY
+London St Pancras International -> Paris Gare du Nord
+Saturday 10 July 2027
+Departs 08:01  Arrives 11:20  Train 9008
+Coach 7, Seat 54 - Standard
+Traveller: Leo Martin
+Total: GBP 89.00

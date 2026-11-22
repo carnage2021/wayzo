@@ -1,0 +1,24 @@
+{
+  "is_travel_document": true,
+  "trip": null,
+  "bookings": [
+    {
+      "type": "flight",
+      "provider": "vietjet",
+      "booking_code": "XK47TP",
+      "start_at": "2027-01-12T23:50",
+      "end_at": "2027-01-13T06:20",
+      "from_place": "ahmedabad",
+      "to_place": "ho chi minh"
+    },
+    {
+      "type": "flight",
+      "provider": "vietjet",
+      "booking_code": "XK47TP",
+      "start_at": "2027-01-17T18:50",
+      "end_at": "2027-01-17T22:50",
+      "from_place": "ho chi minh",
+      "to_place": "ahmedabad"
+    }
+  ]
+}

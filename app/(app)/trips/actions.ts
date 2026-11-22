@@ -1,21 +1,22 @@
 "use server";
 
-import { randomInt } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { FieldValue } from "firebase-admin/firestore";
+import { and, eq } from "drizzle-orm";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { getUser } from "@/lib/auth";
-import { db } from "@/lib/firebase/admin";
-import { toTrip } from "@/lib/firebase/convert";
-import type { CoverCredit, Destination, JsonValue, TripRow } from "@/lib/firebase/types";
+import { db } from "@/lib/db";
+import { activity, tripMembers, trips } from "@/lib/db/schema";
+import type { CoverCredit, Destination, JsonValue } from "@/lib/db/types";
 import { findCoverPhoto } from "@/lib/places/cover";
 import { getPlaceBasics, isPlacesConfigured } from "@/lib/places/geoapify";
+import { memberAccess } from "@/lib/trips/access";
+import { deleteTripFiles } from "@/lib/uploads";
 import { fieldErrors, tripInputSchema, type TripInput } from "@/lib/validation/schemas";
 
 type FieldResult<T> = ActionResult<T> & { fields?: Record<string, string> };
 
-const TRIP_ID_RE = /^[A-Za-z0-9_-]{8,64}$/;
 const CODE_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789"; // no 0/o/1/l/i
 
 function inboundCode(length = 8): string {
@@ -40,28 +41,19 @@ async function resolveDestinations(input: TripInput["destinations"]) {
   const cover = destinations[0] ? await findCoverPhoto(destinations[0].name) : null;
   return {
     destinations,
-    cover_url: cover?.url ?? null,
-    cover_credit: (cover?.credit ?? null) as CoverCredit | null,
+    coverUrl: cover?.url ?? null,
+    coverCredit: (cover?.credit ?? null) as CoverCredit | null,
   };
 }
 
-function activity(actorId: string, verb: string, object: JsonValue = {}) {
-  return { actor_id: actorId, verb, object, created_at: FieldValue.serverTimestamp() };
-}
-
 async function logActivity(tripId: string, actorId: string, verb: string, object: JsonValue = {}) {
-  await db()
-    .collection("trips")
-    .doc(tripId)
-    .collection("activity")
-    .add(activity(actorId, verb, object));
+  await db().insert(activity).values({ tripId, actorId, verb, object });
 }
 
-/** Loads a trip only if the user is a member (null otherwise). */
-async function memberTrip(tripId: string, userId: string): Promise<TripRow | null> {
-  if (!TRIP_ID_RE.test(tripId)) return null;
-  const trip = toTrip(await db().collection("trips").doc(tripId).get());
-  return trip && trip.member_ids.includes(userId) ? trip : null;
+/** Postgres unique violation (e.g. the random inbound code already exists). */
+function isUniqueViolation(e: unknown): boolean {
+  const err = e as { code?: string; cause?: { code?: string } };
+  return err?.code === "23505" || err?.cause?.code === "23505";
 }
 
 export async function createTrip(raw: unknown): Promise<FieldResult<{ id: string }>> {
@@ -72,47 +64,38 @@ export async function createTrip(raw: unknown): Promise<FieldResult<{ id: string
   if (!parsed.success) return { ...fail("Check the highlighted fields."), fields: fieldErrors(parsed.error) };
 
   const resolved = await resolveDestinations(parsed.data.destinations);
-  const firestore = db();
-  const tripRef = firestore.collection("trips").doc();
+  const id = randomUUID();
 
-  // The forwarding code must be unique: create() fails if it's taken, so retry with a new one.
+  // The forwarding code must be unique: retry with a new one if it collides.
   for (let attempt = 0; attempt < 4; attempt++) {
-    const code = inboundCode();
-    const batch = firestore.batch();
-    batch.create(firestore.collection("inboundCodes").doc(code), { trip_id: tripRef.id });
-    batch.create(tripRef, {
-      owner_id: user.id,
-      member_ids: [user.id],
-      name: parsed.data.name,
-      destinations: resolved.destinations,
-      start_date: parsed.data.start_date,
-      end_date: parsed.data.end_date,
-      currency: parsed.data.currency,
-      cover_url: resolved.cover_url,
-      cover_credit: resolved.cover_credit,
-      inbound_code: code,
-      status: "planning",
-      planned_budget_minor: null,
-      created_at: FieldValue.serverTimestamp(),
-      updated_at: FieldValue.serverTimestamp(),
-    });
-    batch.create(tripRef.collection("members").doc(user.id), {
-      role: "owner",
-      email_enabled: true,
-      push_enabled: true,
-      joined_at: FieldValue.serverTimestamp(),
-    });
-    batch.create(
-      tripRef.collection("activity").doc(),
-      activity(user.id, "created the trip", { name: parsed.data.name }),
-    );
     try {
-      await batch.commit();
+      await db().batch([
+        db().insert(trips).values({
+          id,
+          ownerId: user.id,
+          name: parsed.data.name,
+          destinations: resolved.destinations,
+          startDate: parsed.data.start_date,
+          endDate: parsed.data.end_date,
+          currency: parsed.data.currency,
+          coverUrl: resolved.coverUrl,
+          coverCredit: resolved.coverCredit,
+          inboundCode: inboundCode(),
+        }),
+        db().insert(tripMembers).values({ tripId: id, userId: user.id, role: "owner" }),
+        db()
+          .insert(activity)
+          .values({
+            tripId: id,
+            actorId: user.id,
+            verb: "created the trip",
+            object: { name: parsed.data.name },
+          }),
+      ]);
       revalidatePath("/trips");
-      return ok({ id: tripRef.id });
+      return ok({ id });
     } catch (e) {
-      const code6 = (e as { code?: number }).code === 6; // ALREADY_EXISTS
-      if (!code6) {
+      if (!isUniqueViolation(e)) {
         console.error("[createTrip]", e instanceof Error ? e.message : e);
         break;
       }
@@ -122,10 +105,9 @@ export async function createTrip(raw: unknown): Promise<FieldResult<{ id: string
 }
 
 export async function updateTrip(tripId: string, raw: unknown): Promise<FieldResult<{ id: string }>> {
-  const user = await getUser();
-  if (!user) return fail("Please sign in again.");
-  const existing = await memberTrip(tripId, user.id);
-  if (!existing) return fail("Trip not found.");
+  const access = await memberAccess(tripId);
+  if (!access) return fail("Trip not found.");
+  const { user, trip: existing } = access;
   if (existing.owner_id !== user.id) return fail("Only the trip owner can change trip details.");
 
   const parsed = tripInputSchema.safeParse(raw);
@@ -137,22 +119,25 @@ export async function updateTrip(tripId: string, raw: unknown): Promise<FieldRes
   const resolved = sameDestinations
     ? {
         destinations: existing.destinations,
-        cover_url: existing.cover_url,
-        cover_credit: existing.cover_credit,
+        coverUrl: existing.cover_url,
+        coverCredit: existing.cover_credit,
       }
     : await resolveDestinations(parsed.data.destinations);
 
   try {
-    await db().collection("trips").doc(tripId).update({
-      name: parsed.data.name,
-      start_date: parsed.data.start_date,
-      end_date: parsed.data.end_date,
-      currency: parsed.data.currency,
-      destinations: resolved.destinations,
-      cover_url: resolved.cover_url,
-      cover_credit: resolved.cover_credit,
-      updated_at: FieldValue.serverTimestamp(),
-    });
+    await db()
+      .update(trips)
+      .set({
+        name: parsed.data.name,
+        startDate: parsed.data.start_date,
+        endDate: parsed.data.end_date,
+        currency: parsed.data.currency,
+        destinations: resolved.destinations,
+        coverUrl: resolved.coverUrl,
+        coverCredit: resolved.coverCredit,
+        updatedAt: new Date(),
+      })
+      .where(eq(trips.id, tripId));
   } catch {
     return fail("We couldn't save your changes. Please try again.");
   }
@@ -164,18 +149,15 @@ export async function updateTrip(tripId: string, raw: unknown): Promise<FieldRes
 }
 
 export async function deleteTrip(tripId: string, confirmName: string): Promise<ActionResult<never>> {
-  const user = await getUser();
-  if (!user) return fail("Please sign in again.");
-  const trip = await memberTrip(tripId, user.id);
-  if (!trip) return fail("Trip not found.");
-  if (trip.owner_id !== user.id) return fail("Only the trip owner can delete this trip.");
-  if (confirmName.trim() !== trip.name) return fail("Type the trip name exactly to confirm.");
+  const access = await memberAccess(tripId);
+  if (!access) return fail("Trip not found.");
+  if (access.trip.owner_id !== access.user.id) return fail("Only the trip owner can delete this trip.");
+  if (confirmName.trim() !== access.trip.name) return fail("Type the trip name exactly to confirm.");
 
-  const firestore = db();
   try {
-    // Deletes the trip and every subcollection (members, activity, bookings, expenses…).
-    await firestore.recursiveDelete(firestore.collection("trips").doc(tripId));
-    if (trip.inbound_code) await firestore.collection("inboundCodes").doc(trip.inbound_code).delete();
+    // Stored ticket files first; members, activity, bookings and uploads rows cascade with the trip.
+    await deleteTripFiles([tripId]);
+    await db().delete(trips).where(eq(trips.id, tripId));
   } catch (e) {
     console.error("[deleteTrip]", e instanceof Error ? e.message : e);
     return fail("We couldn't delete this trip. Please try again.");
@@ -186,20 +168,18 @@ export async function deleteTrip(tripId: string, confirmName: string): Promise<A
 }
 
 export async function leaveTrip(tripId: string): Promise<ActionResult<never>> {
-  const user = await getUser();
-  if (!user) return fail("Please sign in again.");
-  const trip = await memberTrip(tripId, user.id);
-  if (!trip) return fail("Trip not found.");
-  if (trip.owner_id === user.id) return fail("Owners can't leave their own trip. Delete it instead.");
+  const access = await memberAccess(tripId);
+  if (!access) return fail("Trip not found.");
+  if (access.trip.owner_id === access.user.id)
+    return fail("Owners can't leave their own trip. Delete it instead.");
 
-  const firestore = db();
-  const tripRef = firestore.collection("trips").doc(tripId);
   try {
-    const batch = firestore.batch();
-    batch.create(tripRef.collection("activity").doc(), activity(user.id, "left the trip"));
-    batch.update(tripRef, { member_ids: FieldValue.arrayRemove(user.id) });
-    batch.delete(tripRef.collection("members").doc(user.id));
-    await batch.commit();
+    await db().batch([
+      db().insert(activity).values({ tripId, actorId: access.user.id, verb: "left the trip", object: {} }),
+      db()
+        .delete(tripMembers)
+        .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, access.user.id))),
+    ]);
   } catch {
     return fail("We couldn't remove you from this trip.");
   }

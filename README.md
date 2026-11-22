@@ -14,27 +14,28 @@ Requires **Node 22 LTS** (recommended; Node ≥ 20.9 works with the pinned versi
 
 ```bash
 corepack pnpm@9.15.0 install      # or: npx pnpm@9.15.0 install
-cp .env.example .env.local        # fill in the Firebase keys + APP_SECRET
+cp .env.example .env.local        # fill in DATABASE_URL, MONGODB_URI, BETTER_AUTH_SECRET, UPLOADTHING_TOKEN, AI_API_KEY
+pnpm db:migrate                   # create the tables in Neon
 pnpm dev                          # http://localhost:3000
 ```
 
 The landing page, legal pages and waitlist form work with **no keys at all** (in dev, waitlist sign-ups are logged to the console instead of stored).
 
-### Connect Firebase (needed for sign-in and trips)
+### Connect the backend (needed for sign-in, trips and tickets)
 
-1. Firebase console → your project → **Project settings → Your apps → Web app**: copy the config into the `NEXT_PUBLIC_FIREBASE_*` vars.
-2. **Project settings → Service accounts → Generate new private key**: paste the whole JSON on one line as `FIREBASE_SERVICE_ACCOUNT_KEY='{...}'`. Server only, never commit it.
-3. **Authentication → Sign-in method**: enable **Email/Password** with **Email link (passwordless sign-in)** turned on, and enable **Google**.
-4. **Authentication → Settings → Authorised domains**: `localhost` is there by default; add your Vercel domain(s) later.
-5. **Firestore Database → Create database** (production mode) and **Storage → Get started**.
-6. Deploy the security rules (one time, and after changing them):
-   ```bash
-   npx firebase-tools login
-   npx firebase-tools deploy --only firestore:rules,firestore:indexes,storage
-   ```
-7. Optional keys: `RESEND_API_KEY` (waitlist + verification emails), `GEOAPIFY_API_KEY` (city search), `UNSPLASH_ACCESS_KEY` (trip cover photos), Sentry/PostHog.
+All free, no credit card:
 
-How the data is laid out and secured: [firebase/README.md](firebase/README.md).
+1. **Neon** (neon.tech): create a project, then **Connect** with pooling on. Copy the string into `DATABASE_URL`, then run `pnpm db:migrate`.
+2. **MongoDB Atlas** (cloud.mongodb.com): create a free M0 cluster. Under **Database Access**, add a user; under **Network Access**, allow `0.0.0.0/0`. Put the `mongodb+srv://.../wayzo` string in `MONGODB_URI`.
+3. **Better Auth**: set `BETTER_AUTH_SECRET` to a long random string and `BETTER_AUTH_URL` to the site URL.
+4. **UploadThing** (uploadthing.com): create an app and copy **API Keys -> UPLOADTHING_TOKEN**.
+5. **OpenRouter** (openrouter.ai): an API key in `AI_API_KEY` for ticket reading. The free models are listed in `AI_MODELS`.
+6. Optional:
+   - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` add "Continue with Google". The redirect URI is `<site>/api/auth/callback/google`.
+   - `RESEND_API_KEY` sends emails (password reset, waitlist).
+   - `GEOAPIFY_API_KEY` adds city search; `UNSPLASH_ACCESS_KEY` adds cover photos.
+
+How the data is laid out and protected: [docs/BACKEND.md](docs/BACKEND.md).
 
 ### Scripts
 
@@ -49,17 +50,16 @@ How the data is laid out and secured: [firebase/README.md](firebase/README.md).
 
 ```
 app/(marketing)/        landing page, privacy, terms (+ landing.css: design animations)
-app/(auth)/login/       email link + Google sign-in (Firebase Auth)
-app/(auth)/auth/callback  completes the emailed sign-in link
-app/auth/               signout, verify-email route handlers
+app/(auth)/login/       email + password (and Google) sign-in, forgot/reset password
+app/auth/               continue (post sign-in redirect), signout, verify-email
 app/(app)/onboarding/   first-login profile
 app/(app)/(shell)/      My trips, New trip, Account (top-bar shell)
 app/(app)/trips/[id]/   trip dashboard shell: dashboard, members, settings, coming-soon sections
 app/api/                waitlist, auth session cookie, places autocomplete
 components/ui/          design-system kit (Button, Input, Chip, Card, Avatar, Dialog, Sheet, Tabs, …)
 components/marketing/   landing sections
-lib/                    firebase (admin/client), auth, validation (Zod), trips logic, places, email, rate limit
-firebase/               Firestore + Storage security rules, indexes
+lib/                    db (Drizzle/Neon), auth (Better Auth), ai, tickets, trips, places, email, validation (Zod)
+drizzle/                SQL migrations for Neon
 ```
 
 ---
@@ -72,13 +72,13 @@ firebase/               Firestore + Storage security rules, indexes
 | `docs/PRD.md` | Product requirements: vision, scope, users, journey, monetization, risks, metrics |
 | `docs/FEATURES.md` | Every MVP 1 feature as user stories + acceptance criteria |
 | `docs/ARCHITECTURE.md` | System architecture, folder structure, API routes, background jobs |
-| `docs/DATA_MODEL.md` | Entities and relations (Firestore layout in `firebase/README.md`) |
+| `docs/DATA_MODEL.md` | Entities and relations (actual tables and access rules in `docs/BACKEND.md`) |
 | `docs/AI_SPEC.md` | AI jobs, JSON schemas, prompts, guardrails |
 | `docs/DESIGN_SYSTEM.md` | Brand, colors, type, spacing, motion, components |
 | `docs/ROADMAP.md` | Phase-by-phase task checklist (12 weeks) — the build order |
 | `design/landing-page.html` | Final landing page design (open in a browser) |
 | `design/splash-screen.html` | App splash screen design |
-| `firebase/` | Firestore + Storage security rules and indexes (`firebase.json` points here) |
+| `docs/BACKEND.md` | Where data lives (Neon, MongoDB, UploadThing) and how access is enforced |
 | `.env.example` | Environment variables needed |
 
 ## How to start with Claude Code
@@ -92,7 +92,7 @@ firebase/               Firestore + Storage security rules, indexes
 
 ## Accounts you'll need
 
-- Vercel (hosting) · Firebase (Auth, Firestore, Storage)
+- Vercel (hosting) · Neon (Postgres) · MongoDB Atlas (logins) · UploadThing (files) · OpenRouter (AI)
 - Anthropic or Google AI (LLM with vision)
 - Geoapify (places + routing, free tier) · Unsplash (cover photos)
 - Resend (outgoing email) + Postmark or Resend Inbound (forward-to-trip emails)

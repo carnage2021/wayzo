@@ -6,7 +6,7 @@ import { ChevronLeft, MoreHorizontal } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { LogoMark } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
-import { MOBILE_PRIMARY, TRIP_SECTIONS, sectionHref } from "./trip-nav-items";
+import { MOBILE_PRIMARY, LIVE_PHASE, TRIP_SECTIONS, sectionHref } from "./trip-nav-items";
 import { useActiveSection } from "./trip-sidebar";
 
 /** Mobile top bar (trip name) */
@@ -89,7 +89,7 @@ export function TripBottomNav({ tripId }: { tripId: string }) {
                   >
                     <Icon className={cn("size-6", on && "text-lime")} aria-hidden />
                     {label}
-                    {phase > 1 && (
+                    {phase > LIVE_PHASE && (
                       <span
                         className="bg-blue absolute top-2 right-2 size-1.5 rounded-full"
                         aria-label="Coming soon"
