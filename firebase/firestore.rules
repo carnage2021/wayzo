@@ -1,0 +1,39 @@
+rules_version = '2';
+
+// Wayzo Firestore rules.
+// All writes go through our Next.js server (Admin SDK, which bypasses these rules and
+// checks membership in code). Browsers can never write directly. Reads are limited
+// to trip members so live (realtime) listeners can be added safely in later phases.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isMember(tripId) {
+      return signedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/trips/$(tripId)).data.member_ids;
+    }
+
+    // Own profile only.
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Trip + everything inside it (members, activity, bookings, expenses, ...): members only.
+    match /trips/{tripId} {
+      allow read: if signedIn() && request.auth.uid in resource.data.member_ids;
+      allow write: if false;
+
+      match /{sub}/{docId} {
+        allow read: if isMember(tripId);
+        allow write: if false;
+      }
+    }
+
+    // Server-only collections: waitlist, userEmails, inboundCodes, and anything not listed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
