@@ -1,0 +1,31 @@
+{
+  "duration": 61.326,
+  "frameSize": [
+    1920,
+    1080
+  ],
+  "events": [
+    {
+      "type": "click",
+      "t": 3.294,
+      "x": 1103.5841295069345,
+      "y": 503.7834277494125,
+      "label": "Choose files"
+    },
+    {
+      "type": "file-picked",
+      "t": 3.563,
+      "label": "Hotel booking"
+    },
+    {
+      "type": "wait-start",
+      "t": 3.573,
+      "label": "AI reading the ticket"
+    },
+    {
+      "type": "wait-end",
+      "t": 51.026,
+      "result": "Stayly-booking-CAL-55210.pdf Casa Alfama Lodge"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+http://localhost:3000/trips/71135d0b-766c-4ed4-8832-9b9e2a5010f7

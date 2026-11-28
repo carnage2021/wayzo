@@ -1,0 +1,122 @@
+[
+ {
+  "start": 0,
+  "end": 8.2,
+  "text": "This is Wayzo. You drop in a ticket, and your whole trip sorts itself out."
+ },
+ {
+  "start": 10.2,
+  "end": 30,
+  "text": "Planning a trip with friends is fun until someone asks: which hotel did we book? In this video I'll show you what I'm building, what already works, and what's coming next."
+ },
+ {
+  "start": 30,
+  "end": 75,
+  "text": "I'm Mirage, and I'm building Wayzo in public. It's a web app for group trips: one place for every ticket, stay and plan, so nobody has to dig through emails and screenshots again."
+ },
+ {
+  "start": 75,
+  "end": 87,
+  "text": "Right now a group trip lives in about nine apps. Email, the airline app, booking sites, screenshots, notes, a spreadsheet. Wayzo puts it in one trip."
+ },
+ {
+  "start": 87,
+  "end": 95,
+  "text": "And you know this chat. Which hotel? What time is the flight? Who's paying for the train?"
+ },
+ {
+  "start": 95,
+  "end": 101,
+  "text": "Most travel apps ask where you want to go. But your group already booked."
+ },
+ {
+  "start": 101,
+  "end": 150,
+  "text": "So Wayzo starts from what you already have: your bookings."
+ },
+ {
+  "start": 150,
+  "end": 172.23,
+  "text": "Here's the landing page. The idea is simple: upload your tickets, tell us your vibe, and travel easy."
+ },
+ {
+  "start": 172.23,
+  "end": 182.23,
+  "text": "Step one, upload tickets. Step two, everyone shares their vibe: budget, food, pace. Step three, Wayzo builds the plan."
+ },
+ {
+  "start": 195,
+  "end": 236.78,
+  "text": "Let's try it for real. I'll create an account: name, email, password. Then a quick onboarding, just my home city, and I'm in."
+ },
+ {
+  "start": 236.78,
+  "end": 263.67,
+  "text": "Signing out and back in works too. Your trips are waiting for you."
+ },
+ {
+  "start": 263.67,
+  "end": 305.13,
+  "text": "Now a new trip. I'll call it Lisbon with friends, search for Lisbon, add the dates and pick euros. And here's the dashboard, empty for now, waiting for tickets."
+ },
+ {
+  "start": 323.67,
+  "end": 346.48,
+  "text": "This is the part I'm most excited about. I drop in the flight PDF. The AI reads it: flight number, date, time, from London to Lisbon, seats, price. I didn't type anything."
+ },
+ {
+  "start": 346.48,
+  "end": 365.75,
+  "text": "It also works with a screenshot. Here's the train ticket from Lisbon to Porto, straight from a phone."
+ },
+ {
+  "start": 365.75,
+  "end": 387.13,
+  "text": "And the hotel booking: check-in, check-out, the address and the price."
+ },
+ {
+  "start": 387.13,
+  "end": 419.35,
+  "text": "Everything lands on the right day of the trip. That's the dashboard filling itself."
+ },
+ {
+  "start": 419.35,
+  "end": 429.35,
+  "text": "Now, what's coming next. Every friend takes a short quiz: where they like to stay, what they eat, how fast they travel."
+ },
+ {
+  "start": 429.35,
+  "end": 439.35,
+  "text": "Then Wayzo suggests stays that fit the whole group, and you vote."
+ },
+ {
+  "start": 439.35,
+  "end": 449.35,
+  "text": "A day-by-day plan you can edit, with real places, and you can ask the AI to add a spot."
+ },
+ {
+  "start": 449.35,
+  "end": 459.35,
+  "text": "Shared expenses, so you always know who owes whom."
+ },
+ {
+  "start": 459.35,
+  "end": 469.35,
+  "text": "A seven AM brief every morning with the day's plan and the weather."
+ },
+ {
+  "start": 469.35,
+  "end": 479.35,
+  "text": "And later, Wayzo on WhatsApp."
+ },
+ {
+  "start": 494.35,
+  "end": 514.35,
+  "text": "That's episode one. I'm building this in public, so subscribe if you want to see what ships next. See you in the next one."
+ },
+ {
+  "start": 514.35,
+  "end": 539.35,
+  "text": "If you've ever lost a booking in a group chat, tell me in the comments. I read all of them."
+ }
+]

@@ -16,3 +16,14 @@ next-env.d.ts
 
 # Launch video renders and work files
 /brag-output*
+
+# Episode 1 footage: keep scripts and Remotion source, not media or deps
+video-ep01/**/node_modules
+video-ep01/**/*.mp4
+video-ep01/**/*.mov
+video-ep01/**/*.webm
+video-ep01/**/*.png
+video-ep01/**/*.pdf
+video-ep01/remotion/out
+video-ep01/remotion/public
+*.wav

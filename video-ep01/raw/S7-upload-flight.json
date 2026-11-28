@@ -1,0 +1,31 @@
+{
+  "duration": 72.919,
+  "frameSize": [
+    1920,
+    1080
+  ],
+  "events": [
+    {
+      "type": "click",
+      "t": 3.302,
+      "x": 1103.5841295069345,
+      "y": 503.7834277494125,
+      "label": "Choose files"
+    },
+    {
+      "type": "file-picked",
+      "t": 3.577,
+      "label": "Flight PDF"
+    },
+    {
+      "type": "wait-start",
+      "t": 3.588,
+      "label": "AI reading the ticket"
+    },
+    {
+      "type": "wait-end",
+      "t": 62.656,
+      "result": "SkyPort-eticket-WZ7K2Q.pdf LHR → LIS"
+    }
+  ]
+}

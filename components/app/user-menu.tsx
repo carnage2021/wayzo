@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
 import { DropdownMenu } from "radix-ui";
 import { LogOut, Plane, UserRound } from "lucide-react";
@@ -24,6 +25,7 @@ export function UserMenu({
   side?: "top" | "bottom";
   showName?: boolean;
 }) {
+  const signOutForm = useRef<HTMLFormElement>(null);
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
@@ -65,8 +67,16 @@ export function UserMenu({
             </Link>
           </DropdownMenu.Item>
           <DropdownMenu.Separator className="bg-soft-line mx-1 my-1 h-px" />
-          <form action="/auth/signout" method="post">
-            <DropdownMenu.Item asChild className={item}>
+          {/* Submit from onSelect: Radix closes (and unmounts) the menu on select, which would drop a plain submit. */}
+          <form ref={signOutForm} action="/auth/signout" method="post">
+            <DropdownMenu.Item
+              asChild
+              className={item}
+              onSelect={(e) => {
+                e.preventDefault();
+                signOutForm.current?.requestSubmit();
+              }}
+            >
               <button type="submit">
                 <LogOut className="text-subtle size-[18px]" aria-hidden /> Sign out
               </button>
